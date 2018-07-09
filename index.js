@@ -13,6 +13,7 @@ const Config = require('./lib/Config');
  *
  * @param {Object} options
  * @param {String} options.filename - The path of the module whose tree to traverse
+ * @param {String[]} options.extensions - The extensions of the dependency files
  * @param {String} options.directory - The directory containing all JS files
  * @param {String} [options.requireConfig] - The path to a requirejs config
  * @param {String} [options.webpackConfig] - The path to a webpack config
@@ -105,6 +106,7 @@ module.exports._getDependencies = function(config) {
     const result = cabinet({
       partial: dep,
       filename: config.filename,
+      extensions: config.extensions,
       directory: config.directory,
       ast: precinct.ast,
       config: config.requireConfig,
