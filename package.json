@@ -40,7 +40,7 @@
   "dependencies": {
     "commander": "^2.16.0",
     "debug": "^3.1.0",
-    "filing-cabinet": "https://github.com/ilya-uryupov/node-filing-cabinet#1.14.2_ext",
+    "filing-cabinet": "https://github.com/ilya-uryupov/node-filing-cabinet#1.14.2_extensions_0.1.1",
     "precinct": "^4.2.0"
   },
   "devDependencies": {
