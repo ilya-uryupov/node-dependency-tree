@@ -83,6 +83,8 @@ module.exports.toList = function(options) {
  * @return {Array}
  */
 module.exports._getDependencies = function(config) {
+  debug('config', config)
+
   let dependencies;
   const precinctOptions = config.detectiveConfig;
   precinctOptions.includeCore = false;
@@ -103,7 +105,7 @@ module.exports._getDependencies = function(config) {
   for (let i = 0, l = dependencies.length; i < l; i++) {
     const dep = dependencies[i];
 
-    const result = cabinet({
+    const cabinetOptions = {
       partial: dep,
       filename: config.filename,
       extensions: config.extensions,
@@ -112,7 +114,11 @@ module.exports._getDependencies = function(config) {
       config: config.requireConfig,
       webpackConfig: config.webpackConfig,
       nodeModulesConfig: config.nodeModulesConfig
-    });
+    }
+
+    debug(`filing-cabinet options for ${dep}`, cabinetOptions)
+
+    const result = cabinet(cabinetOptions);
 
     if (!result) {
       debug('skipping an empty filepath resolution for partial: ' + dep);
