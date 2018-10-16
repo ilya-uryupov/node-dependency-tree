@@ -41,7 +41,7 @@
   "dependencies": {
     "commander": "^2.17.1",
     "debug": "^4.0.1",
-    "filing-cabinet": "^2.0.1",
+    "filing-cabinet": "https://github.com/ilya-uryupov/node-filing-cabinet#2.0.2_extensions_0.1.2",
     "precinct": "^5.0.0"
   },
   "devDependencies": {
