@@ -81,7 +81,7 @@ module.exports.toList = function(options) {
  * @return {Array}
  */
 module.exports._getDependencies = function(config) {
-  debug('config', config)
+  debug('config', config);
 
   let dependencies;
   const precinctOptions = config.detectiveConfig;
@@ -112,9 +112,9 @@ module.exports._getDependencies = function(config) {
       config: config.requireConfig,
       webpackConfig: config.webpackConfig,
       nodeModulesConfig: config.nodeModulesConfig
-    }
+    };
 
-    debug(`filing-cabinet options for ${dep}`, cabinetOptions)
+    debug(`filing-cabinet options for ${dep}`, cabinetOptions);
 
     const result = cabinet(cabinetOptions);
 
