@@ -42,7 +42,7 @@
     "commander": "^2.17.1",
     "debug": "^4.0.1",
     "filing-cabinet": "https://github.com/ilya-uryupov/node-filing-cabinet#2.0.2_extensions_0.1.3",
-    "precinct": "^5.0.0"
+    "precinct": "https://github.com/ilya-uryupov/node-precinct#v5.1.0_extensions_v0.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
