@@ -73,6 +73,18 @@ module.exports.toList = function(options) {
   return module.exports(options);
 };
 
+const paperCache = new Map();
+
+function paperwork(filename, options) {
+  if (paperCache.has(filename)) {
+    return paperCache.get(filename);
+  }
+
+  const work = precinct.paperwork(filename, options);
+  paperCache.set(filename, work);
+  return work;
+}
+
 /**
  * Returns the list of dependencies for the given filename
  *
@@ -89,7 +101,7 @@ module.exports._getDependencies = function(config) {
   precinctOptions.includeCore = false;
 
   try {
-    dependencies = precinct.paperwork(config.filename, precinctOptions);
+    dependencies = paperwork(config.filename, precinctOptions);
 
     debug('extracted ' + dependencies.length + ' dependencies: ', dependencies);
 
