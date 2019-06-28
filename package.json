@@ -1,6 +1,6 @@
 {
   "name": "dependency-tree",
-  "version": "6.2.1",
+  "version": "7.0.2",
   "description": "Get the dependency tree of a module",
   "main": "index.js",
   "scripts": {
@@ -39,21 +39,21 @@
   },
   "homepage": "https://github.com/mrjoelkemp/node-dependency-tree",
   "dependencies": {
-    "commander": "^2.17.1",
-    "debug": "^4.0.1",
+    "commander": "^2.19.0",
+    "debug": "^4.1.1",
     "filing-cabinet": "git+https://github.com/ilya-uryupov/node-filing-cabinet#2.0.2_extensions_0.1.3",
     "precinct": "git+https://github.com/ilya-uryupov/node-precinct#v5.1.0_extensions_v0.1.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-register": "^6.26.0",
-    "babel-preset-env": "~1.6.1",
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "@babel/register": "^7.0.0",
     "jscs": "^3.0.7",
     "jscs-preset-mrjoelkemp": "~2.0.0",
     "mocha": "^5.0.0",
     "mock-fs": "^4.7.0",
-    "resolve": "^1.5.0",
+    "resolve": "^1.9.0",
     "rewire": "^4.0.1",
     "sinon": "^6.1.5"
   }

@@ -21,6 +21,7 @@ var tree = dependencyTree({
   directory: 'path/to/all/files',
   requireConfig: 'path/to/requirejs/config', // optional
   webpackConfig: 'path/to/webpack/config', // optional
+  tsConfig: 'path/to/typescript/config', // optional
   nodeModulesConfig: {
     entry: 'module'
   }, // optional
@@ -41,6 +42,7 @@ var list = dependencyTree.toList({
 
 * `requireConfig`: path to a requirejs config for AMD modules (allows for the result of aliased module paths)
 * `webpackConfig`: path to a webpack config for aliased modules
+* `tsConfig`: path to a typescript config (or a preloaded object representing the typescript config)
 * `nodeModulesConfig`: config for resolving entry file for node_modules
 * `visited`: object used for avoiding redundant subtree generations via memoization.
 * `nonExistent`: array used for storing the list of partial paths that do not exist
@@ -87,11 +89,25 @@ Prints the dependency tree of the given filename as stringified json (by default
 
 * You can alternatively print out the list form one element per line using the `--list-form` option.
 
+### How does this work?
+
+Dependency tree takes in a starting file, extracts its declared dependencies via [precinct](https://github.com/dependents/node-precinct/), resolves each of those dependencies to a file on the filesystem via [filing-cabinet](https://github.com/dependents/node-filing-cabinet), then recursively performs those steps until there are no more dependencies to process. 
+
+In more detail, the starting file is passed to precinct to extract dependencies. Dependency-tree doesn't care about how to extract dependencies, so it delegates that work to precinct: which is a multi-language dependency extractor; we'll focus on JavaScript tree generation for this example. To do the extraction, precinct delegates the abstract-syntax-tree (AST) generation to the default parser for [node-source-walk](https://github.com/dependents/node-source-walk). Precinct uses the AST to determine what type of JS module the file is (Commonjs, AMD, or ES6) and then delegates to the "detective" that's appropriate for that module type. The "detective" contains the logic for how to extract dependencies based on the module syntax format; i.e., the way dependencies are declared in commonjs is different than in AMD (which has 4 ways of doing that, for example).
+
+After using the detective to get the (raw, like './foobar') dependency strings, precinct passes that back to dependency-tree. Of course, in order to find the dependencies in './foobar', we need to resolve that dependency to a real file on the filesystem. To do this, dependency-tree delegates that task to filing-cabinet: which is a multi-language dependency resolver.
+
+Filing-cabinet reuses (for performance) the AST that precinct made node-source-walk generate. It then does a similar check on the AST to see which module type (commonjs, amd, or es6) is being used in the file (again, we're assuming a regular JS file for this example) and then delegates to the appropriate resolver for that module type. We need different resolvers because a dependency name in AMD could be aliased via a requirejs config. Similarly, commonjs has its own algorithm for resolving dependencies.
+
+So after the appropriate resolver finds the file on the filesystem, filing-cabinet has successfully mapped a raw dependency name to a file on the filesystem. Now, dependency-tree has a file that it can also traverse (repeating exactly what was done for the starting file).
+
+At the end of traversing every file (in a depth-first fashion), we have a fully populated dependency tree. :dancers:
+
 ### FAQ
 
 #### Why aren't some some dependencies being detected?
 
-If there are bugs in [precinct](https://github.com/dependents/node-precinct) or if the `requireConfig`/`webpackConfig` options are incomplete,
+If there are bugs in [precinct](https://github.com/dependents/node-precinct) or if the `requireConfig`/`webpackConfig`/`tsConfig` options are incomplete,
 some dependencies may not be resolved. The optional array passed to the `nonExistent` option will be populated with paths
 that could not be resolved. You can check this array to see where problems might exist.
 

@@ -22,6 +22,7 @@ const Config = require('./lib/Config');
  *                             Format is a filename -> tree as list lookup table
  * @param {Array} [options.nonExistent] - List of partials that do not exist
  * @param {Boolean} [options.isListForm=false]
+ * @param {String|Object} [options.tsConfig] Path to a typescript config (or a preloaded one).
  * @return {Object}
  */
 module.exports = function(options) {
@@ -111,7 +112,8 @@ module.exports._getDependencies = function(config) {
       ast: precinct.ast,
       config: config.requireConfig,
       webpackConfig: config.webpackConfig,
-      nodeModulesConfig: config.nodeModulesConfig
+      nodeModulesConfig: config.nodeModulesConfig,
+      tsConfig: config.tsConfig
     };
 
     debug(`filing-cabinet options for ${dep}`, cabinetOptions);
