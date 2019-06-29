@@ -41,7 +41,7 @@
   "dependencies": {
     "commander": "^2.19.0",
     "debug": "^4.1.1",
-    "filing-cabinet": "git+https://github.com/ilya-uryupov/node-filing-cabinet#hs/v1.0",
+    "filing-cabinet": "git+https://github.com/ilya-uryupov/node-filing-cabinet.git#hs/v1.0.2",
     "precinct": "git+https://github.com/ilya-uryupov/node-precinct#hs/v1.0"
   },
   "devDependencies": {
