@@ -7,6 +7,7 @@ import rewire from 'rewire';
 import Config from '../lib/Config';
 
 const dependencyTree = rewire('../');
+dependencyTree.__set__('noPrecinctCache', true);
 
 describe('dependencyTree', function() {
   this.timeout(8000);
@@ -153,7 +154,7 @@ describe('dependencyTree', function() {
     assert(spy.callCount === 2);
     assert(Object.keys(tree[filename]).length);
 
-    dependencyTree._getDependencies.restore();
+    spy.restore();
   });
 
   it('excludes Nodejs core modules by default', function() {
@@ -222,7 +223,7 @@ describe('dependencyTree', function() {
         detective: detectiveConfig
       });
 
-      assert.ok(spy.calledWith(filename, detectiveConfig));
+      assert.ok(spy.calledWithExactly(filename, sinon.match(detectiveConfig)));
       spy.restore();
     });
   });
@@ -240,7 +241,7 @@ describe('dependencyTree', function() {
         const filename = path.normalize(directory + '/a.js');
         const nonExistent = [];
 
-        const tree = dependencyTree({filename, directory, nonExistent});
+        dependencyTree({filename, directory, nonExistent});
 
         assert.equal(nonExistent.length, 1);
         assert.equal(nonExistent[0], './notReal');
@@ -260,7 +261,7 @@ describe('dependencyTree', function() {
         const filename = path.normalize(directory + '/a.js');
         const nonExistent = [];
 
-        const tree = dependencyTree({filename, directory, nonExistent});
+        dependencyTree({filename, directory, nonExistent});
 
         assert.equal(nonExistent.length, 0);
       });
@@ -280,7 +281,7 @@ describe('dependencyTree', function() {
         const filename = path.normalize(directory + '/a.js');
         const nonExistent = [];
 
-        const tree = dependencyTree({filename, directory, nonExistent});
+        dependencyTree({filename, directory, nonExistent});
 
         assert.equal(nonExistent.length, 1);
         assert.equal(nonExistent[0], './notRealMan');
@@ -301,7 +302,7 @@ describe('dependencyTree', function() {
         const filename = path.normalize(directory + '/a.js');
         const nonExistent = [];
 
-        const tree = dependencyTree({filename, directory, nonExistent});
+        dependencyTree({filename, directory, nonExistent});
 
         assert.equal(nonExistent.length, 1);
         assert.equal(nonExistent[0], './notRealMan');
@@ -339,7 +340,7 @@ describe('dependencyTree', function() {
         const directory = __dirname + '/example/onlyRealDeps';
         const filename = path.normalize(directory + '/a.js');
 
-        const tree = dependencyTree({
+        dependencyTree({
           filename,
           directory,
           filter: 'foobar'
@@ -352,7 +353,7 @@ describe('dependencyTree', function() {
         const directory = __dirname + '/example/onlyRealDeps';
         const filename = path.normalize(directory + '/a.js');
 
-        const tree = dependencyTree({
+        dependencyTree({
           filename,
           root: directory
         });
@@ -382,8 +383,8 @@ describe('dependencyTree', function() {
 
   describe('when a filter function is supplied', function() {
     it('uses the filter to determine if a file should be included in the results', function() {
-      const directory = path.resolve(__dirname, '/example/onlyRealDeps');
-      const filename = path.normalize(directory + '/a.js');
+      const directory = path.resolve(__dirname, 'example/onlyRealDeps');
+      const filename = path.resolve(directory, 'a.js');
 
       const tree = dependencyTree({
         filename,
@@ -391,7 +392,7 @@ describe('dependencyTree', function() {
         // Skip all 3rd party deps
         filter: (filePath, moduleFile) => {
           assert.ok(require.resolve('debug'));
-          assert.ok(moduleFile.match('test/example/onlyRealDeps/a.js'));
+          assert.ok(moduleFile.match(/test[\/\\]example[\/\\]onlyRealDeps[\/\\]a.js/));
           return filePath.indexOf('node_modules') === -1;
         }
       });
@@ -410,7 +411,7 @@ describe('dependencyTree', function() {
     });
 
     afterEach(function() {
-      dependencyTree._getDependencies.restore();
+      this._spy.restore();
     });
 
     it('accepts a cache object for memoization (#2)', function() {
@@ -499,18 +500,20 @@ describe('dependencyTree', function() {
 
         it('it includes the module entry as dependency', function() {
           const directory = __dirname + '/es6';
-          const filename = path.normalize(directory + '/module.entry.js');
+          const filename = path.resolve(directory, 'module.entry.js');
 
           const tree = dependencyTree({
             filename,
             directory,
             nodeModulesConfig: {
               entry: 'module'
-            }
+            },
+            defaultResolver: 'JS'
           });
           const subTree = tree[filename];
 
-          assert.ok(path.normalize(`${directory}/node_modules/module.entry/index.module.js`) in subTree);
+          const expectedPath = path.normalize(`${directory}/node_modules/module.entry/index.module.js`);
+          assert.ok(expectedPath in subTree);
         });
       });
     });
@@ -530,7 +533,8 @@ describe('dependencyTree', function() {
           directory: this._directory
         });
 
-        assert.ok(path.normalize(tree[`${this._directory}/c.js`]));
+        const expectedPath = path.normalize(`${this._directory}/c.js`);
+        assert.ok(tree[expectedPath]);
       });
 
       it('resolves files with a jsx extension', function() {
@@ -540,7 +544,7 @@ describe('dependencyTree', function() {
           directory: this._directory
         });
 
-        assert.ok(path.normalize(tree[`${this._directory}/b.js`]));
+        assert.ok(tree[path.normalize(`${this._directory}/b.js`)]);
       });
 
       it('resolves files that have es7', function() {
@@ -550,7 +554,7 @@ describe('dependencyTree', function() {
           directory: this._directory
         });
 
-        assert.ok(path.normalize(tree[`${this._directory}/c.js`]));
+        assert.ok(tree[path.normalize(`${this._directory}/c.js`)]);
       });
 
       describe('when given an es6 file using CJS lazy requires', function() {
@@ -826,6 +830,9 @@ describe('dependencyTree', function() {
 
   describe('requirejs', function() {
     beforeEach(function() {
+      // Eagerly load this dependency, because we mock FS and it breaks require
+      dependencyTree.__set__('cabinet.amdLookup', require('module-lookup-amd'));
+
       mockfs({
         root: {
           'lodizzle.js': 'define({})',
@@ -859,11 +866,12 @@ describe('dependencyTree', function() {
       const tree = dependencyTree({
         filename: 'root/a.js',
         directory: 'root',
-        config: 'root/require.config.js'
+        config: 'root/require.config.js',
+        defaultResolver: 'JS'
       });
 
       const filename = path.resolve(process.cwd(), 'root/a.js');
-      const aliasedFile = path.resolve(process.cwd(), 'root/lodizzle.js');
+      path.resolve(process.cwd(), 'root/lodizzle.js');
       assert.ok(path.normalize('root/lodizzle.js') in tree[filename]);
     });
 
@@ -875,7 +883,7 @@ describe('dependencyTree', function() {
       });
 
       const filename = path.resolve(process.cwd(), 'root/b.js');
-      const aliasedFile = path.resolve(process.cwd(), 'root/lodizzle.js');
+      path.resolve(process.cwd(), 'root/lodizzle.js');
       assert.ok(path.normalize('root/lodizzle.js') in tree[filename]);
     });
   });

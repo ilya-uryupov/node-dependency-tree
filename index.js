@@ -1,11 +1,13 @@
 'use strict';
 
 const precinct = require('precinct');
-const path = require('path');
 const fs = require('fs');
 const cabinet = require('filing-cabinet');
 const debug = require('debug')('tree');
 const Config = require('./lib/Config');
+
+// For testing only
+let noPrecinctCache = false;
 
 /**
  * Recursively find all dependencies (avoiding circular) traversing the entire dependency tree
@@ -76,7 +78,7 @@ module.exports.toList = function(options) {
 const paperCache = new Map();
 
 function paperwork(filename, options) {
-  if (paperCache.has(filename)) {
+  if (!noPrecinctCache && paperCache.has(filename)) {
     return paperCache.get(filename);
   }
 
@@ -129,6 +131,10 @@ module.exports._getDependencies = function(config) {
     };
 
     debug(`filing-cabinet options for ${dep}`, cabinetOptions);
+
+    if (config.defaultResolver !== undefined) {
+      cabinet.setDefaultResolver(config.defaultResolver);
+    }
 
     const result = cabinet(cabinetOptions);
 
