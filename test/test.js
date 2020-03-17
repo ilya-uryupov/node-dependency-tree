@@ -93,7 +93,7 @@ describe('dependencyTree', function() {
       imaginary: {}
     });
 
-    const root = __dirname + '/imaginary';
+    const root = path.normalize(__dirname + '/imaginary');
     const filename = path.normalize(root + '/notafile.js');
     const tree = dependencyTree({filename, root});
 
@@ -644,7 +644,7 @@ describe('dependencyTree', function() {
 
           const subTree = tree[filename];
 
-          assert.ok(`${directory}/bar.js` in subTree);
+          assert.ok(path.normalize(`${directory}/bar.js`) in subTree);
         });
       });
     });
